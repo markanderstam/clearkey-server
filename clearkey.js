@@ -1,3 +1,4 @@
+'use strict';
 const crypto = require('crypto');
 const uuid = require('uuid-js');
 const secret = 'my_secret';
@@ -26,14 +27,14 @@ function createContentKey(kid) {
 // Create a Clear Key PSSH
 // https://w3c.github.io/encrypted-media/format-registry/initdata/cenc.html
 function createClearKeyPSSH(kids) {
-    var len = 36 + 16 * kids.length;
-    var pssh = new Buffer(len);
+    let len = 36 + 16 * kids.length;
+    let pssh = new Buffer(len);
     pssh.writeUInt32BE(len, 0);                                         // length
     pssh.write('pssh', 4);                                              // 'pssh'
     pssh.writeUInt32BE(0x01000000, 8);                                  // version = 1, falgs = 0
     Buffer(uuid.fromURN(clearKeySystemId).toBytes()).copy(pssh, 12);    // SystemID
     pssh.writeUInt32BE(kids.length, 28);                                // KID_count
-    for (var i in kids) {
+    for (let i in kids) {
         Buffer.from(kids[i], 'base64').copy(pssh, 32 + 16 * i);         // KID
     }
     pssh.writeUInt32BE(0x00000000, 32 + 16 * kids.length);              // Size of Data (0)
@@ -51,12 +52,12 @@ exports.getContentKey = function (data) {
     const ttlSeconds = (keyPeriod + 1.5) * keyRotationIntervalSeconds - secondsSinceEpoc;
 
     // Create kid and key
-    var kid = createContentKeyIdentifier(data.contentId, keyPeriod);
-    var key = createContentKey(kid);
+    let kid = createContentKeyIdentifier(data.contentId, keyPeriod);
+    let key = createContentKey(kid);
 
     // Create PSSH containing a kid for the previous, current and next key period.
     // This can be used by the client to pre-fetch licenses for nearby periods.
-    var pssh = createClearKeyPSSH([createContentKeyIdentifier(data.contentId, keyPeriod - 1),
+    let pssh = createClearKeyPSSH([createContentKeyIdentifier(data.contentId, keyPeriod - 1),
                                    createContentKeyIdentifier(data.contentId, keyPeriod),
                                    createContentKeyIdentifier(data.contentId, keyPeriod + 1)]);
 
@@ -78,13 +79,13 @@ exports.getContentKey = function (data) {
 // Get license
 // Follows w3.org example: https://www.w3.org/TR/encrypted-media/
 exports.getLicense = function(data) {
-    response = {'keys': []}
-    for (var i in data.kids) {
+    let response = {'keys': []};
+    for (let i in data.kids) {
         response['keys'].push({
             'kid': data.kids[i],
             'k': createContentKey(data.kids[i]),
             'kty': 'oct'
         });
     }
-    return response
+    return response;
 }
