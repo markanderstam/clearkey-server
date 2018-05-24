@@ -2,15 +2,15 @@
 const crypto = require('crypto');
 const uuid = require('uuid-js');
 const secret = 'my_secret';
-const keyRotationIntervalSeconds = 60;
 const clearKeySystemId = '1077efec-c0b2-4d02-ace3-3c1e52e2fb4b';
 
 // Create a content encryption key identifier (kid).
 // The kid is calculated as a function of the contentId, keyPeriod and a secret.
-function createContentKeyIdentifier(contentId, keyPeriod) {
+function createContentKeyIdentifier(contentId, keyPeriod, track) {
     const hash = crypto.createHmac('sha256', secret)
                        .update(contentId)
                        .update(keyPeriod.toString())
+                       .update(track)
                        .digest('hex');
     return Buffer.from(hash.substring(0, 16)).toString('base64')
 }
@@ -43,37 +43,68 @@ function createClearKeyPSSH(kids) {
 
 // Get content key
 exports.getContentKey = function (data) {
-    // Encryption key is rotated every keyRotationIntervalSeconds sec.
-    // Calculate expiery of the key so that the next request will be in the middle
-    // of the next key period to increase probability that a new key is fetched in
-    // a subsequent request.
-    const secondsSinceEpoc = Math.floor(new Date() / 1000);
-    const keyPeriod = Math.floor(secondsSinceEpoc / keyRotationIntervalSeconds);
-    const ttlSeconds = (keyPeriod + 1.5) * keyRotationIntervalSeconds - secondsSinceEpoc;
+    // Check that all necessary parameters are available in the request
+    if (data.contentId == undefined) {
+        throw "expect 'contentId'";
+    }
+    if (data.cryptoPeriodIndex == undefined) {
+        throw "expect 'cryptoPeriodIndex'";
+    }
+    if (data.cryptoPeriodCount == undefined) {
+        throw "expect 'cryptoPeriodCount'";
+    }
+    if (data.tracks == undefined) {
+        throw "expect 'tracks'";
+    }
 
-    // Create kid and key
-    let kid = createContentKeyIdentifier(data.contentId, keyPeriod);
-    let key = createContentKey(kid);
+    // Check so that cryptoPeriodCount is not too high
+    if (data.cryptoPeriodCount > 100) {
+        throw "'cryptoPeriodCount' must be lower than, or equal to, 100";
+    }
 
-    // Create PSSH containing a kid for the previous, current and next key period.
-    // This can be used by the client to pre-fetch licenses for nearby periods.
-    let pssh = createClearKeyPSSH([createContentKeyIdentifier(data.contentId, keyPeriod - 1),
-                                   createContentKeyIdentifier(data.contentId, keyPeriod),
-                                   createContentKeyIdentifier(data.contentId, keyPeriod + 1)]);
-
-    // Return result
-    return {
+    let result = {
         'contentId': data.contentId,
-        'ttlSeconds': ttlSeconds,
-        'kid': kid,
-        'key': key,
-        'drm': [
-            {
-                'systemID': clearKeySystemId,
-                'pssh': pssh
-            }
-        ]
+        'cryptoPeriods': []
     };
+
+    // Cycle through crypto periods
+    for (let keyPeriod = data.cryptoPeriodIndex;
+         keyPeriod < data.cryptoPeriodIndex + data.cryptoPeriodCount;
+         ++keyPeriod) {
+
+        let cryptoPeriod = {
+            'cryptoPeriod': keyPeriod,
+            'tracks': []
+        };
+
+        // Cycle through tracks
+        for (let t in data.tracks) {
+            let trackType = data.tracks[t]['type'];
+
+            // Create kid and key
+            let kid = createContentKeyIdentifier(data.contentId, keyPeriod, trackType);
+            let key = createContentKey(kid);
+
+            // Create PSSH containing a kid for the current key period.
+            let pssh = createClearKeyPSSH([kid]);
+
+            cryptoPeriod['tracks'].push(
+                {
+                    'type': trackType,
+                    'kid': kid,
+                    'key': key,
+                    'pssh': [{
+                        'systemId': clearKeySystemId,
+                        'pssh': pssh
+                    }]
+                }
+            );
+        }
+
+        result['cryptoPeriods'].push(cryptoPeriod);
+    }
+
+    return result;
 };
 
 // Get license
