@@ -19,9 +19,11 @@ There are two public APIs in the server: get\_content\_key() and get_license().
 ## Get Content Key
 This API is typically used by the SYE Ingress in order to get encryption keys for a channel.
 
-It is possible to request keys for one or many crypto periods (two in the example below)
+It is possible to request keys for one or many crypto periods (two in the example below).
 
-It is possible to request keys for one or many track types (two in the example below)
+It is possible to request keys for one or many track types (two in the example below).
+
+get\_content\_key is guaranteed to always return the same kid and key for a specific combination of contentId, cryptoPeriod and track type.
 
 ### Request
 
