@@ -7,21 +7,21 @@ const clearKeySystemId = '1077efec-c0b2-4d02-ace3-3c1e52e2fb4b';
 // Create a content encryption key identifier (kid).
 // The kid is calculated as a function of the contentId, keyPeriod and a secret.
 function createContentKeyIdentifier(contentId, keyPeriod, track) {
-    const hash = crypto.createHmac('sha256', secret)
+    const hash = crypto.createHmac('md5', secret)
                        .update(contentId)
                        .update(keyPeriod.toString())
                        .update(track)
                        .digest('hex');
-    return Buffer.from(hash.substring(0, 16)).toString('base64')
+    return Buffer(hash ,'hex').toString('base64')
 }
 
 // Create a content encryption key.
 // The key is calculated as a function of the kid and a secret.
 function createContentKey(kid) {
-    const hash = crypto.createHmac('sha256', secret)
+    const hash = crypto.createHmac('md5', secret)
                        .update(kid)
                        .digest('hex');
-    return Buffer.from(hash.substring(0, 16)).toString('base64')
+    return Buffer(hash ,'hex').toString('base64')
 }
 
 // Create a Clear Key PSSH
