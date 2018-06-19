@@ -29,7 +29,7 @@ get\_content\_key is guaranteed to always return the same kid and key for a spec
 
 ```
 {
-    "contentId": "svt1",
+    "contentId": "tv1",
     "cryptoPeriodIndex": 424214,
     "cryptoPeriodCount": 2,
     "tracks": [{
@@ -44,7 +44,7 @@ get\_content\_key is guaranteed to always return the same kid and key for a spec
 
 ```
 {
-    "contentId": "svt1",
+    "contentId": "tv1",
     "cryptoPeriods": [{
         "cryptoPeriod": 424214,
         "tracks": [{
@@ -108,7 +108,7 @@ get\_content\_key is guaranteed to always return the same kid and key for a spec
 
 ### cURL example
 
-    curl -i -d '{"contentId":"svt1","cryptoPeriodIndex":10,"cryptoPeriodCount":2,"tracks":[{"type": "SD"},{"type":"4K"}]}' -H "Content-Type: application/json" http://localhost:8000/get_content_key
+    curl -i -d '{"contentId":"tv1","cryptoPeriodIndex":10,"cryptoPeriodCount":2,"tracks":[{"type": "SD"},{"type":"4K"}]}' -H "Content-Type: application/json" http://localhost:8000/get_content_key
 
 ## Get License 
 This API is typically used by a CDM within a client application and follow w3.org example: https://www.w3.org/TR/encrypted-media/

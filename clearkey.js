@@ -31,7 +31,7 @@ function createClearKeyPSSH(kids) {
     let pssh = new Buffer(len);
     pssh.writeUInt32BE(len, 0);                                         // length
     pssh.write('pssh', 4);                                              // 'pssh'
-    pssh.writeUInt32BE(0x01000000, 8);                                  // version = 1, falgs = 0
+    pssh.writeUInt32BE(0x01000000, 8);                                  // version = 1, flags = 0
     Buffer(uuid.fromURN(clearKeySystemId).toBytes()).copy(pssh, 12);    // SystemID
     pssh.writeUInt32BE(kids.length, 28);                                // KID_count
     for (let i in kids) {
