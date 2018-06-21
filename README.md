@@ -1,9 +1,9 @@
 # ClearKey Server
-ClearKey server that can be used to test DRM functionality in a SYE installation.
+ClearKey server that can be used to test DRM functionality in a Net Insight SYE installation.
 
 Requests are passed to the server using HTTP POST. Requests and responses are JSON objects.
 
-The server support rotation of the encryption keys. Default key period is 60 seconds.
+It is possible to request keys for one or many crypto periods, which means encryption key rotation is supported.
 
 ## Install
     npm install
