@@ -29,6 +29,4 @@ app.post('/get_license', (req, res) => {
     }
 })
 
-app.listen(8000, () => {
-    console.log('ClearKey Server listening on port 8000');
-})
+module.exports = app
